@@ -79,11 +79,7 @@ class Client:
         self.buffer = buf[size:]
         return buf[:size]
 
-    def set(self, key, value, storage_time=DEFAULT_STORAGE_TIME):
-        """
-        Set value for key
-        Return TRUE if successful
-        """
+    def _pack(self, value):
         if isinstance(value, bytes):
             flag = self.FLAG_BYTES
             data = value
@@ -99,7 +95,29 @@ class Client:
         else:
             flag = self.FLAG_PICKLE
             data = pickle.dumps(value)
+        return flag, data
 
+    def _unpack(self, flag, data):
+        if flag == self.FLAG_BYTES:
+            value = data
+        elif flag == self.FLAG_INT:
+            value = int(data.decode())
+        elif flag == self.FLAG_FLOAT:
+            value = float(data.decode())
+        elif flag == self.FLAG_STR:
+            value = data.decode()
+        elif flag == self.FLAG_PICKLE:
+            value = pickle.loads(data)
+        else:
+            raise TypeError(self.TYPE_ERROR)
+        return value
+
+    def set(self, key, value, storage_time=DEFAULT_STORAGE_TIME):
+        """
+        Set value for key
+        Return TRUE if successful
+        """
+        flag, data = self._pack(value)
         data_size = len(data)
         header = 'set {} {} {} {}\r\n'.format(
             key, flag, storage_time, data_size).encode()
@@ -124,20 +142,7 @@ class Client:
         self._read_line()  # Empty line (end of data)
         self._read_line()  # END
 
-        if flag == self.FLAG_BYTES:
-            value = data
-        elif flag == self.FLAG_INT:
-            value = int(data.decode())
-        elif flag == self.FLAG_FLOAT:
-            value = float(data.decode())
-        elif flag == self.FLAG_STR:
-            value = data.decode()
-        elif flag == self.FLAG_PICKLE:
-            value = pickle.loads(data)
-        else:
-            raise TypeError(self.TYPE_ERROR)
-
-        return value
+        return self._unpack(flag, data)
 
     def delete(self, key):
         """ Delete key """
