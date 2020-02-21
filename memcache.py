@@ -23,13 +23,15 @@ class Client:
 
     TYPE_ERROR = 'Incompatible value type'
 
-    def __init__(self, server=DEFAULT_HOST, port=DEFAULT_PORT, socket_timeout=DEFAULT_TIMEOUT):
+    def __init__(self, server=DEFAULT_HOST, port=DEFAULT_PORT,
+                 socket_timeout=DEFAULT_TIMEOUT):
         """ Init Client, create connection """
         self.buffer = b''
         self.server = server
         self.port = port
         self.socket_timeout = socket_timeout
-        self.socket = socket.create_connection((self.server, self.port), socket_timeout)
+        self.socket = socket.create_connection((self.server, self.port),
+                                               socket_timeout)
 
     def _send(self, cmd):
         """ Send cmd to socket """
@@ -99,7 +101,8 @@ class Client:
             data = pickle.dumps(value)
 
         data_size = len(data)
-        header = 'set {} {} {} {}\r\n'.format(key, flag, storage_time, data_size).encode()
+        header = 'set {} {} {} {}\r\n'.format(
+            key, flag, storage_time, data_size).encode()
         body = data + b'\r\n'
         cmd = header + body
         self._send(cmd)
