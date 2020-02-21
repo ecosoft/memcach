@@ -1,0 +1,7 @@
+language: python
+services:
+  - memcached
+script:
+  - python -m pytest -v
+  - python -m pylint *.py
+  - python -m flake8 --statistics *.py
